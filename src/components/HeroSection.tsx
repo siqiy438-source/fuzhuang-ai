@@ -104,6 +104,11 @@ const HeroSection = () => {
                 <div className="text-sm text-muted-foreground">搭配建议</div>
               </div>
             </div>
+            
+            {/* Acknowledgment */}
+            <p className="mt-8 text-xs text-muted-foreground/70 italic">
+              能走到今天，离不开最初那次正确的引导——在 AI 的起点上，感谢聂老师。
+            </p>
           </div>
         </div>
       </div>
