@@ -1,8 +1,11 @@
 import { useState, useRef } from "react";
-import { Upload, Camera, Loader2, CheckCircle2, XCircle, Lightbulb, Sparkles } from "lucide-react";
+import { Upload, Camera, Loader2, CheckCircle2, XCircle, Lightbulb, Sparkles, LogIn } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 interface AnalysisResult {
   pros: string[];
@@ -15,6 +18,7 @@ const PhotoAnalysis = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -35,30 +39,34 @@ const PhotoAnalysis = () => {
   const analyzeOutfit = async () => {
     if (!image) return;
     
+    if (!user) {
+      toast.error("请先登录后再使用分析功能");
+      return;
+    }
+    
     setIsAnalyzing(true);
     
-    // Simulate AI analysis - will be replaced with actual AI call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setResult({
-      pros: [
-        "整体色调统一，黑白配色经典优雅",
-        "上衣剪裁合身，展现优美身形",
-        "配饰选择恰当，增添时尚感"
-      ],
-      cons: [
-        "下装略显单调，可考虑增加层次感",
-        "鞋子与整体风格略有不协调"
-      ],
-      suggestions: [
-        "建议搭配一条细腰带突出腰线",
-        "可尝试换成尖头高跟鞋提升气质",
-        "可添加一件轻薄开衫增加层次"
-      ]
-    });
-    
-    setIsAnalyzing(false);
-    toast.success("分析完成！");
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-outfit', {
+        body: { imageBase64: image }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setResult(data);
+      toast.success("分析完成！");
+    } catch (error: any) {
+      console.error("Analysis error:", error);
+      toast.error(error.message || "分析失败，请重试");
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const resetAnalysis = () => {
@@ -124,25 +132,34 @@ const PhotoAnalysis = () => {
                 </div>
               )}
               
-              <Button
-                variant="rose"
-                size="lg"
-                className="w-full"
-                disabled={!image || isAnalyzing}
-                onClick={analyzeOutfit}
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    AI 正在分析中...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    开始 AI 分析
-                  </>
-                )}
-              </Button>
+              {!user ? (
+                <Link to="/auth">
+                  <Button variant="rose" size="lg" className="w-full">
+                    <LogIn className="w-5 h-5" />
+                    登录后使用 AI 分析
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  variant="rose"
+                  size="lg"
+                  className="w-full"
+                  disabled={!image || isAnalyzing}
+                  onClick={analyzeOutfit}
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      AI 正在分析中...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      开始 AI 分析
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </Card>
 

@@ -1,6 +1,11 @@
-import { Sparkles } from "lucide-react";
+import { Sparkles, LogOut, User } from "lucide-react";
+import { Button } from "./ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 const Header = () => {
+  const { user, signOut } = useAuth();
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
@@ -21,6 +26,27 @@ const Header = () => {
             搭配顾问
           </a>
         </nav>
+
+        <div className="flex items-center gap-3">
+          {user ? (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">{user.email?.split('@')[0]}</span>
+              </div>
+              <Button variant="ghost" size="sm" onClick={signOut}>
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline ml-1">退出</span>
+              </Button>
+            </div>
+          ) : (
+            <Link to="/auth">
+              <Button variant="rose" size="sm">
+                登录
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   );
