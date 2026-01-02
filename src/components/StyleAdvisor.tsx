@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, MessageSquareText, Loader2, Shirt, LogIn } from "lucide-react";
+import { Send, MessageSquareText, Loader2, Shirt, LogIn, Sparkles, Bot, User } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Textarea } from "./ui/textarea";
@@ -13,10 +13,10 @@ interface Message {
 }
 
 const exampleQuestions = [
-  "黑色上衣可以搭配什么颜色的裤子？",
-  "牛仔裤适合搭配什么样的上衣或外套？",
-  "参加婚礼应该穿什么风格的裙子？",
-  "如何打造职场优雅风格？"
+  "黑色上衣配什么裤子？",
+  "牛仔裤怎么搭配？",
+  "婚礼穿什么？",
+  "职场穿搭建议",
 ];
 
 const StyleAdvisor = () => {
@@ -125,7 +125,6 @@ const StyleAdvisor = () => {
     } catch (error: any) {
       console.error("Chat error:", error);
       toast.error(error.message || "发送失败，请重试");
-      // Remove the user message if failed
       setMessages(prev => prev.filter(m => m !== userMessage));
     } finally {
       setIsLoading(false);
@@ -140,34 +139,40 @@ const StyleAdvisor = () => {
   };
 
   return (
-    <section id="style-advisor" className="min-h-screen py-24 bg-background">
-      <div className="container mx-auto px-6">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 mb-6">
+    <section className="min-h-screen py-28 bg-gradient-hero relative">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-gradient-mesh opacity-50" />
+      <div className="absolute bottom-40 left-[20%] w-[400px] h-[400px] bg-primary-glow/5 rounded-full blur-[100px]" />
+      
+      <div className="relative container mx-auto px-6">
+        {/* Header */}
+        <div className="text-center mb-12 max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full glass border border-primary/10 mb-8 animate-fade-up">
             <MessageSquareText className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">搭配顾问</span>
+            <span className="text-sm font-medium text-foreground">搭配顾问</span>
           </div>
-          <h2 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">
-            文字咨询，智能搭配
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            描述您的单品或需求，AI将为您提供专业的搭配方案
+          <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 animate-fade-up" style={{ animationDelay: "0.1s" }}>
+            文字咨询，
+            <span className="text-gradient">智能搭配</span>
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto animate-fade-up" style={{ animationDelay: "0.2s" }}>
+            描述您的单品或需求，AI 将为您提供专业的搭配方案
           </p>
         </div>
 
-        <div className="max-w-4xl mx-auto">
-          <Card className="bg-gradient-card border-border/50 shadow-elevated overflow-hidden">
+        <div className="max-w-4xl mx-auto animate-fade-up" style={{ animationDelay: "0.3s" }}>
+          <Card className="bg-card/80 glass border-border/30 shadow-elevated overflow-hidden">
             {/* Chat Messages */}
-            <div className="h-[500px] overflow-y-auto p-6 space-y-6">
+            <div className="h-[520px] overflow-y-auto p-6 space-y-5">
               {messages.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center">
-                  <div className="w-20 h-20 rounded-full bg-accent flex items-center justify-center mb-6">
-                    <Shirt className="w-10 h-10 text-primary" />
+                <div className="h-full flex flex-col items-center justify-center text-center px-4">
+                  <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary-muted to-accent flex items-center justify-center mb-8 shadow-soft">
+                    <Shirt className="w-12 h-12 text-primary" />
                   </div>
                   <h3 className="font-heading text-2xl font-semibold text-foreground mb-3">
                     开始您的搭配咨询
                   </h3>
-                  <p className="text-muted-foreground mb-8 max-w-md">
+                  <p className="text-muted-foreground mb-10 max-w-md">
                     输入您的穿搭问题，或选择下方的热门问题开始对话
                   </p>
                   <div className="flex flex-wrap justify-center gap-3">
@@ -176,7 +181,7 @@ const StyleAdvisor = () => {
                         key={index}
                         onClick={() => user && sendMessage(question)}
                         disabled={!user}
-                        className="px-4 py-2 rounded-full bg-secondary text-secondary-foreground text-sm hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-5 py-2.5 rounded-full bg-secondary text-secondary-foreground text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 hover:shadow-soft"
                       >
                         {question}
                       </button>
@@ -188,24 +193,37 @@ const StyleAdvisor = () => {
                   {messages.map((message, index) => (
                     <div
                       key={index}
-                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-up`}
+                      className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-slide-up`}
                     >
+                      {message.role === 'assistant' && (
+                        <div className="w-9 h-9 rounded-xl bg-primary-muted flex items-center justify-center shrink-0 mt-1">
+                          <Bot className="w-5 h-5 text-primary" />
+                        </div>
+                      )}
                       <div
-                        className={`max-w-[80%] rounded-2xl px-5 py-4 ${
+                        className={`max-w-[75%] rounded-2xl px-5 py-4 ${
                           message.role === 'user'
-                            ? 'bg-primary text-primary-foreground rounded-tr-sm'
-                            : 'bg-secondary text-secondary-foreground rounded-tl-sm'
+                            ? 'bg-primary text-primary-foreground rounded-br-md shadow-soft'
+                            : 'bg-secondary text-secondary-foreground rounded-bl-md shadow-xs'
                         }`}
                       >
                         <div className="whitespace-pre-wrap text-sm leading-relaxed">
                           {message.content}
                         </div>
                       </div>
+                      {message.role === 'user' && (
+                        <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center shrink-0 mt-1">
+                          <User className="w-5 h-5 text-accent-foreground" />
+                        </div>
+                      )}
                     </div>
                   ))}
                   {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-                    <div className="flex justify-start animate-fade-up">
-                      <div className="bg-secondary rounded-2xl rounded-tl-sm px-5 py-4">
+                    <div className="flex gap-3 justify-start animate-slide-up">
+                      <div className="w-9 h-9 rounded-xl bg-primary-muted flex items-center justify-center shrink-0">
+                        <Bot className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="bg-secondary rounded-2xl rounded-bl-md px-5 py-4 shadow-xs">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Loader2 className="w-4 h-4 animate-spin" />
                           <span className="text-sm">AI 正在思考...</span>
@@ -219,10 +237,10 @@ const StyleAdvisor = () => {
             </div>
 
             {/* Input Area */}
-            <div className="border-t border-border/50 p-4 bg-muted/30">
+            <div className="border-t border-border/30 p-5 bg-muted/20">
               {!user ? (
                 <Link to="/auth" className="block">
-                  <Button variant="rose" size="lg" className="w-full">
+                  <Button variant="rose" size="lg" className="w-full h-14 text-base">
                     <LogIn className="w-5 h-5" />
                     登录后开始咨询
                   </Button>
@@ -235,13 +253,13 @@ const StyleAdvisor = () => {
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={handleKeyDown}
                       placeholder="输入您的搭配问题，例如：黑色连衣裙配什么外套好看？"
-                      className="min-h-[52px] max-h-32 resize-none bg-background border-border/50 focus:border-primary/50"
+                      className="min-h-[56px] max-h-32 resize-none bg-background border-border/50 focus:border-primary/50 rounded-xl text-base"
                       rows={1}
                     />
                     <Button
                       variant="rose"
                       size="icon"
-                      className="h-[52px] w-[52px] shrink-0"
+                      className="h-14 w-14 shrink-0 rounded-xl"
                       onClick={() => sendMessage()}
                       disabled={!input.trim() || isLoading}
                     >
@@ -252,7 +270,7 @@ const StyleAdvisor = () => {
                       )}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                  <p className="text-xs text-muted-foreground mt-3 text-center">
                     按 Enter 发送，Shift + Enter 换行
                   </p>
                 </>
