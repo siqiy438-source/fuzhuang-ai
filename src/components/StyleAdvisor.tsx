@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, MessageSquareText, Loader2, Shirt, LogIn, Sparkles, Bot, User } from "lucide-react";
+import { Send, MessageSquareText, Loader2, Shirt, LogIn, Bot, User } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Textarea } from "./ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   role: "user" | "assistant";
@@ -33,6 +35,21 @@ const StyleAdvisor = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // 保存对话到数据库
+  const saveConsultation = async (query: string, response: string) => {
+    if (!user) return;
+    
+    try {
+      await supabase.from('style_consultations').insert({
+        user_id: user.id,
+        query,
+        response
+      });
+    } catch (error) {
+      console.error("Save consultation error:", error);
+    }
+  };
 
   const sendMessage = async (text?: string) => {
     const messageText = text || input;
@@ -122,6 +139,11 @@ const StyleAdvisor = () => {
           }
         }
       }
+
+      // 保存对话记录
+      if (assistantContent) {
+        saveConsultation(messageText, assistantContent);
+      }
     } catch (error: any) {
       console.error("Chat error:", error);
       toast.error(error.message || "发送失败，请重试");
@@ -207,9 +229,15 @@ const StyleAdvisor = () => {
                             : 'bg-secondary text-secondary-foreground rounded-bl-md shadow-xs'
                         }`}
                       >
-                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                          {message.content}
-                        </div>
+                        {message.role === 'assistant' ? (
+                          <div className="prose prose-sm dark:prose-invert max-w-none text-secondary-foreground prose-p:leading-relaxed prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-headings:text-foreground prose-headings:font-heading prose-strong:text-foreground">
+                            <ReactMarkdown>{message.content}</ReactMarkdown>
+                          </div>
+                        ) : (
+                          <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                            {message.content}
+                          </div>
+                        )}
                       </div>
                       {message.role === 'user' && (
                         <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center shrink-0 mt-1">
