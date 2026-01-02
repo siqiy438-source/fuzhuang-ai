@@ -19,8 +19,8 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // 优化构建配置
-    target: "esnext",
+    // 优化构建配置 - 使用兼容性更好的目标
+    target: ["es2020", "edge88", "firefox78", "chrome87", "safari14"],
     minify: "terser",
     terserOptions: {
       compress: {
