@@ -60,6 +60,20 @@ const PhotoAnalysis = () => {
       }
 
       setResult(data);
+      
+      // 保存分析记录到数据库
+      const { error: saveError } = await supabase.from('outfit_analyses').insert({
+        user_id: user.id,
+        image_url: image,
+        pros: data.pros,
+        cons: data.cons,
+        suggestions: data.suggestions
+      });
+      
+      if (saveError) {
+        console.error("Save error:", saveError);
+      }
+      
       toast.success("分析完成！");
     } catch (error: any) {
       console.error("Analysis error:", error);
