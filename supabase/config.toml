@@ -1,1 +1,7 @@
 project_id = "jkakswmxsftvecdavqzl"
+
+[functions.analyze-outfit]
+verify_jwt = false
+
+[functions.style-chat]
+verify_jwt = false
