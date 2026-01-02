@@ -1,8 +1,11 @@
-import { useState } from "react";
-import { Send, MessageSquareText, Loader2, Shirt, Sparkles } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Send, MessageSquareText, Loader2, Shirt, LogIn } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Textarea } from "./ui/textarea";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 interface Message {
   role: "user" | "assistant";
@@ -20,74 +23,113 @@ const StyleAdvisor = () => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const sendMessage = async (text?: string) => {
     const messageText = text || input;
     if (!messageText.trim()) return;
+
+    if (!user) {
+      toast.error("请先登录后再使用咨询功能");
+      return;
+    }
 
     const userMessage: Message = { role: "user", content: messageText };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
-    // Simulate AI response - will be replaced with actual AI call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    let assistantContent = "";
 
-    const assistantMessage: Message = {
-      role: "assistant",
-      content: generateMockResponse(messageText)
-    };
-    
-    setMessages(prev => [...prev, assistantMessage]);
-    setIsLoading(false);
-  };
+    try {
+      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/style-chat`;
+      
+      const resp = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ 
+          messages: [...messages, userMessage].map(m => ({
+            role: m.role,
+            content: m.content
+          }))
+        }),
+      });
 
-  const generateMockResponse = (question: string): string => {
-    if (question.includes("黑色上衣")) {
-      return `黑色上衣是非常百搭的单品，以下是一些搭配建议：
+      if (!resp.ok) {
+        const errorData = await resp.json().catch(() => ({}));
+        throw new Error(errorData.error || "请求失败");
+      }
 
-**经典搭配：**
-• 白色裤子 - 黑白配永不过时，干净利落
-• 米色/卡其色裤子 - 温柔优雅，适合日常
+      if (!resp.body) {
+        throw new Error("无响应数据");
+      }
 
-**时尚搭配：**
-• 牛仔蓝 - 休闲又时髦
-• 酒红色 - 增添一抹复古气质
-• 焦糖色 - 秋冬高级感首选
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
 
-**注意事项：**
-建议根据场合选择裤装版型，正式场合选择直筒或阔腿裤，休闲场合可以选择小脚裤或烟管裤。`;
+      const updateAssistant = (content: string) => {
+        assistantContent = content;
+        setMessages(prev => {
+          const last = prev[prev.length - 1];
+          if (last?.role === "assistant") {
+            return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content } : m));
+          }
+          return [...prev, { role: "assistant", content }];
+        });
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantContent += content;
+              updateAssistant(assistantContent);
+            }
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error("Chat error:", error);
+      toast.error(error.message || "发送失败，请重试");
+      // Remove the user message if failed
+      setMessages(prev => prev.filter(m => m !== userMessage));
+    } finally {
+      setIsLoading(false);
     }
-    
-    if (question.includes("牛仔裤")) {
-      return `牛仔裤是衣橱必备单品，搭配建议如下：
-
-**上衣推荐：**
-• 白色T恤/衬衫 - 简约清爽，百搭首选
-• 条纹衫 - 法式慵懒风
-• 针织衫 - 温柔知性
-
-**外套推荐：**
-• 西装外套 - 休闲正式两相宜
-• 牛仔外套 - 同色系更高级
-• 风衣 - 优雅大气
-• 皮衣 - 酷感十足
-
-**小技巧：**
-高腰牛仔裤搭配短款上衣，可以拉长腿部比例；选择深色牛仔裤更显瘦。`;
-    }
-
-    return `感谢您的咨询！针对您的问题，我有以下建议：
-
-**整体原则：**
-• 注意色彩协调，同色系或对比色都可以
-• 考虑场合需求，正式or休闲
-• 注重版型搭配，上松下紧或上紧下松
-
-**具体建议：**
-您可以根据自己的身材特点和个人风格进行调整。如果需要更具体的建议，可以告诉我更多关于您想要的风格或场合信息。
-
-还有其他搭配问题吗？我很乐意继续为您解答！`;
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -132,8 +174,9 @@ const StyleAdvisor = () => {
                     {exampleQuestions.map((question, index) => (
                       <button
                         key={index}
-                        onClick={() => sendMessage(question)}
-                        className="px-4 py-2 rounded-full bg-secondary text-secondary-foreground text-sm hover:bg-accent transition-colors"
+                        onClick={() => user && sendMessage(question)}
+                        disabled={!user}
+                        className="px-4 py-2 rounded-full bg-secondary text-secondary-foreground text-sm hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {question}
                       </button>
@@ -160,7 +203,7 @@ const StyleAdvisor = () => {
                       </div>
                     </div>
                   ))}
-                  {isLoading && (
+                  {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
                     <div className="flex justify-start animate-fade-up">
                       <div className="bg-secondary rounded-2xl rounded-tl-sm px-5 py-4">
                         <div className="flex items-center gap-2 text-muted-foreground">
@@ -170,38 +213,50 @@ const StyleAdvisor = () => {
                       </div>
                     </div>
                   )}
+                  <div ref={messagesEndRef} />
                 </>
               )}
             </div>
 
             {/* Input Area */}
             <div className="border-t border-border/50 p-4 bg-muted/30">
-              <div className="flex gap-3">
-                <Textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="输入您的搭配问题，例如：黑色连衣裙配什么外套好看？"
-                  className="min-h-[52px] max-h-32 resize-none bg-background border-border/50 focus:border-primary/50"
-                  rows={1}
-                />
-                <Button
-                  variant="rose"
-                  size="icon"
-                  className="h-[52px] w-[52px] shrink-0"
-                  onClick={() => sendMessage()}
-                  disabled={!input.trim() || isLoading}
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Send className="w-5 h-5" />
-                  )}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                按 Enter 发送，Shift + Enter 换行
-              </p>
+              {!user ? (
+                <Link to="/auth" className="block">
+                  <Button variant="rose" size="lg" className="w-full">
+                    <LogIn className="w-5 h-5" />
+                    登录后开始咨询
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <div className="flex gap-3">
+                    <Textarea
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="输入您的搭配问题，例如：黑色连衣裙配什么外套好看？"
+                      className="min-h-[52px] max-h-32 resize-none bg-background border-border/50 focus:border-primary/50"
+                      rows={1}
+                    />
+                    <Button
+                      variant="rose"
+                      size="icon"
+                      className="h-[52px] w-[52px] shrink-0"
+                      onClick={() => sendMessage()}
+                      disabled={!input.trim() || isLoading}
+                    >
+                      {isLoading ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Send className="w-5 h-5" />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    按 Enter 发送，Shift + Enter 换行
+                  </p>
+                </>
+              )}
             </div>
           </Card>
         </div>
