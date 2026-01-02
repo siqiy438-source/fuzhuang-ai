@@ -1,5 +1,6 @@
-import { ArrowDown, Camera, MessageSquareText } from "lucide-react";
+import { Camera, MessageSquareText } from "lucide-react";
 import { Button } from "./ui/button";
+import { Link } from "react-router-dom";
 
 const HeroSection = () => {
   return (
@@ -28,23 +29,18 @@ const HeroSection = () => {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up" style={{ animationDelay: '0.3s' }}>
             <Button variant="hero" size="xl" asChild>
-              <a href="#photo-analysis" className="gap-3">
+              <Link to="/photo-analysis" className="gap-3">
                 <Camera className="w-5 h-5" />
                 上传照片分析
-              </a>
+              </Link>
             </Button>
             <Button variant="elegant" size="xl" asChild>
-              <a href="#style-advisor" className="gap-3">
+              <Link to="/style-advisor" className="gap-3">
                 <MessageSquareText className="w-5 h-5" />
                 文字搭配咨询
-              </a>
+              </Link>
             </Button>
           </div>
-        </div>
-        
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <ArrowDown className="w-6 h-6 text-muted-foreground" />
         </div>
       </div>
     </section>

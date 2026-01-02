@@ -1,17 +1,17 @@
 import Header from "@/components/Header";
-import HeroSection from "@/components/HeroSection";
+import StyleAdvisor from "@/components/StyleAdvisor";
 import Footer from "@/components/Footer";
 
-const Index = () => {
+const StyleAdvisorPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main>
-        <HeroSection />
+      <main className="pt-16">
+        <StyleAdvisor />
       </main>
       <Footer />
     </div>
   );
 };
 
-export default Index;
+export default StyleAdvisorPage;
