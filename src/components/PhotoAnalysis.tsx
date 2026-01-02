@@ -26,19 +26,65 @@ const PhotoAnalysis = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 压缩图片
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // 限制最大尺寸为 1920px
+          const maxSize = 1920;
+          if (width > maxSize || height > maxSize) {
+            if (width > height) {
+              height = (height / width) * maxSize;
+              width = maxSize;
+            } else {
+              width = (width / height) * maxSize;
+              height = maxSize;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // 压缩质量 0.8
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
         toast.error("图片大小不能超过10MB");
         return;
       }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImage(e.target?.result as string);
+      
+      try {
+        toast.loading("正在处理图片...");
+        const compressedImage = await compressImage(file);
+        setImage(compressedImage);
         setResult(null);
-      };
-      reader.readAsDataURL(file);
+        toast.dismiss();
+        toast.success("图片上传成功");
+      } catch (error) {
+        console.error("Image compression error:", error);
+        toast.error("图片处理失败，请重试");
+      }
     }
   };
 
@@ -132,9 +178,9 @@ const PhotoAnalysis = () => {
 
   return (
     <section className="min-h-screen py-28 bg-gradient-hero relative">
-      {/* Background Effects */}
+      {/* Background Effects - 移动端简化 */}
       <div className="absolute inset-0 bg-gradient-mesh opacity-50" />
-      <div className="absolute top-40 right-[20%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px]" />
+      <div className="absolute top-40 right-[20%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px] hidden md:block" />
       
       <div className="relative container mx-auto px-6">
         {/* Header */}

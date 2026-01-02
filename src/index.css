@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
 
 @layer base {
   :root {
@@ -200,6 +200,19 @@
     -webkit-backdrop-filter: blur(12px);
   }
 
+  /* 移动端简化毛玻璃效果 */
+  @media (max-width: 768px) {
+    .glass {
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    
+    .glass-subtle {
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+  }
+
   /* Shadows */
   .shadow-xs {
     box-shadow: var(--shadow-xs);
@@ -229,51 +242,92 @@
     box-shadow: var(--shadow-inner);
   }
 
-  /* Animations */
+  /* Animations - 移动端优化 */
   .animate-float {
     animation: float 6s ease-in-out infinite;
+    will-change: transform;
   }
 
   .animate-float-delayed {
     animation: float 6s ease-in-out infinite;
     animation-delay: -3s;
+    will-change: transform;
   }
 
   .animate-fade-up {
     animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     opacity: 0;
+    will-change: opacity, transform;
   }
 
   .animate-fade-in {
     animation: fadeIn 0.5s ease-out forwards;
     opacity: 0;
+    will-change: opacity;
   }
 
   .animate-scale-in {
     animation: scaleIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     opacity: 0;
+    will-change: opacity, transform;
   }
 
   .animate-slide-up {
     animation: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     opacity: 0;
+    will-change: opacity, transform;
   }
 
   .animate-blur-in {
     animation: blurIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    will-change: opacity, filter;
   }
 
   .animate-shimmer {
     animation: shimmer 2.5s linear infinite;
     background-size: 200% 100%;
+    will-change: background-position;
   }
 
   .animate-pulse-subtle {
     animation: pulseSoft 3s ease-in-out infinite;
+    will-change: opacity;
   }
 
   .animate-glow {
     animation: glow 2s ease-in-out infinite alternate;
+    will-change: box-shadow;
+  }
+
+  /* 移动端减少动画 */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-float,
+    .animate-float-delayed,
+    .animate-fade-up,
+    .animate-fade-in,
+    .animate-scale-in,
+    .animate-slide-up,
+    .animate-blur-in,
+    .animate-shimmer,
+    .animate-pulse-subtle,
+    .animate-glow {
+      animation: none;
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  /* 移动端性能优化 */
+  @media (max-width: 768px) {
+    .animate-float,
+    .animate-float-delayed {
+      animation-duration: 8s; /* 减慢动画速度 */
+    }
+    
+    .animate-glow {
+      animation: none; /* 移动端禁用发光效果 */
+    }
   }
 
   /* Hover Effects */

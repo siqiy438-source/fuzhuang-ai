@@ -1,17 +1,38 @@
 import { Camera, MessageSquareText, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 const HeroSection = () => {
+  // 检测是否为移动设备
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <section className="relative min-h-screen bg-gradient-hero overflow-hidden">
       {/* Mesh Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-mesh" />
       
-      {/* Animated Decorative Orbs */}
-      <div className="absolute top-20 left-[10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] animate-float" />
-      <div className="absolute bottom-20 right-[10%] w-[600px] h-[600px] bg-primary-glow/8 rounded-full blur-[120px] animate-float-delayed" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-primary/3 to-transparent rounded-full" />
+      {/* Animated Decorative Orbs - 移动端简化版 */}
+      {!isMobile ? (
+        <>
+          <div className="absolute top-20 left-[10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] animate-float" />
+          <div className="absolute bottom-20 right-[10%] w-[600px] h-[600px] bg-primary-glow/8 rounded-full blur-[120px] animate-float-delayed" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-primary/3 to-transparent rounded-full" />
+        </>
+      ) : (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-gradient-radial from-primary/5 to-transparent rounded-full" />
+      )}
       
       {/* Content */}
       <div className="relative container mx-auto px-6 pt-32 pb-20 min-h-screen flex flex-col items-center justify-center">

@@ -162,9 +162,9 @@ const StyleAdvisor = () => {
 
   return (
     <section className="min-h-screen py-28 bg-gradient-hero relative">
-      {/* Background Effects */}
+      {/* Background Effects - 移动端简化 */}
       <div className="absolute inset-0 bg-gradient-mesh opacity-50" />
-      <div className="absolute bottom-40 left-[20%] w-[400px] h-[400px] bg-primary-glow/5 rounded-full blur-[100px]" />
+      <div className="absolute bottom-40 left-[20%] w-[400px] h-[400px] bg-primary-glow/5 rounded-full blur-[100px] hidden md:block" />
       
       <div className="relative container mx-auto px-6">
         {/* Header */}
