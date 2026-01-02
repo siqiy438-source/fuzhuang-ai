@@ -1,6 +1,5 @@
 import Header from "@/components/Header";
 import StyleAdvisor from "@/components/StyleAdvisor";
-import Footer from "@/components/Footer";
 import { usePerformance } from "@/hooks/usePerformance";
 
 const StyleAdvisorPage = () => {
@@ -12,7 +11,6 @@ const StyleAdvisorPage = () => {
       <main className="pt-16">
         <StyleAdvisor />
       </main>
-      <Footer />
     </div>
   );
 };

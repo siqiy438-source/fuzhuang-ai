@@ -1,6 +1,5 @@
 import Header from "@/components/Header";
 import PhotoAnalysis from "@/components/PhotoAnalysis";
-import Footer from "@/components/Footer";
 import { usePerformance } from "@/hooks/usePerformance";
 
 const PhotoAnalysisPage = () => {
@@ -12,7 +11,6 @@ const PhotoAnalysisPage = () => {
       <main className="pt-16">
         <PhotoAnalysis />
       </main>
-      <Footer />
     </div>
   );
 };

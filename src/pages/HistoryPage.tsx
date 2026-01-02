@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { History, Camera, MessageSquareText, Trash2, ChevronRight, Loader2, LogIn } from "lucide-react";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -374,7 +373,6 @@ const HistoryPage = () => {
           )}
         </div>
       </main>
-      <Footer />
     </div>
   );
 };

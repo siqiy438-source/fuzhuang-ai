@@ -1,6 +1,5 @@
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
-import Footer from "@/components/Footer";
 import { usePerformance } from "@/hooks/usePerformance";
 
 const Index = () => {
@@ -12,7 +11,6 @@ const Index = () => {
       <main>
         <HeroSection />
       </main>
-      <Footer />
     </div>
   );
 };
