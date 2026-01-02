@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Upload, Camera, Loader2, CheckCircle2, XCircle, Lightbulb, Sparkles, LogIn, ImagePlus } from "lucide-react";
+import { Upload, Camera, Loader2, CheckCircle2, XCircle, Lightbulb, Sparkles, LogIn, ImagePlus, MessageSquare } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { toast } from "sonner";
@@ -13,10 +13,16 @@ interface AnalysisResult {
   suggestions: string[];
 }
 
+interface SalesIntro {
+  introduction: string;
+}
+
 const PhotoAnalysis = () => {
   const [image, setImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isGeneratingIntro, setIsGeneratingIntro] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [salesIntro, setSalesIntro] = useState<SalesIntro | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
 
@@ -83,9 +89,42 @@ const PhotoAnalysis = () => {
     }
   };
 
+  const generateSalesIntro = async () => {
+    if (!image || !result) return;
+    
+    if (!user) {
+      toast.error("请先登录后再使用此功能");
+      return;
+    }
+    
+    setIsGeneratingIntro(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-sales-intro', {
+        body: { 
+          imageBase64: image,
+          pros: result.pros,
+          suggestions: result.suggestions
+        }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      setSalesIntro(data);
+      toast.success("销售话术生成完成！");
+    } catch (error: any) {
+      console.error("Generate intro error:", error);
+      toast.error(error.message || "生成失败，请重试");
+    } finally {
+      setIsGeneratingIntro(false);
+    }
+  };
+
   const resetAnalysis = () => {
     setImage(null);
     setResult(null);
+    setSalesIntro(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -256,6 +295,45 @@ const PhotoAnalysis = () => {
                       </li>
                     ))}
                   </ul>
+                </Card>
+
+                {/* Sales Introduction Button & Result */}
+                <Card className="p-6 bg-card/80 glass border-border/30 shadow-soft hover-lift">
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="w-12 h-12 rounded-xl bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center shadow-xs">
+                      <MessageSquare className="w-6 h-6 text-rose-600 dark:text-rose-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-heading text-xl font-semibold text-foreground">销售话术</h3>
+                      <p className="text-sm text-muted-foreground">如何向顾客介绍这套穿搭</p>
+                    </div>
+                  </div>
+                  
+                  {salesIntro ? (
+                    <div className="prose prose-sm max-w-none text-foreground/90 leading-relaxed whitespace-pre-wrap">
+                      {salesIntro.introduction}
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full"
+                      disabled={isGeneratingIntro}
+                      onClick={generateSalesIntro}
+                    >
+                      {isGeneratingIntro ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          正在生成销售话术...
+                        </>
+                      ) : (
+                        <>
+                          <MessageSquare className="w-5 h-5" />
+                          生成销售话术
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </Card>
               </>
             ) : (

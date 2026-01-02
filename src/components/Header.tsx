@@ -13,7 +13,6 @@ const Header = () => {
 
   const navLinks = [
     { path: "/photo-analysis", label: "穿搭分析" },
-    { path: "/outfit-generator", label: "风格生成" },
     { path: "/style-advisor", label: "搭配顾问" },
     { path: "/history", label: "历史记录" },
   ];
