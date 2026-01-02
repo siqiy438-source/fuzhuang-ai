@@ -76,34 +76,61 @@ serve(async (req) => {
         }
 
         const data = await response.json();
-        console.log(`Style ${style.name} response received`);
+        console.log(`Style ${style.name} full response:`, JSON.stringify(data, null, 2));
 
-        // Extract image from response
-        const content = data.choices?.[0]?.message?.content;
+        // Extract image from response - check multiple possible formats
+        const message = data.choices?.[0]?.message;
+        const content = message?.content;
         
-        // Check if content contains inline image data
+        // Format 1: Content is an array with image parts (Gemini multimodal response)
         if (Array.isArray(content)) {
-          const imageContent = content.find((item: any) => item.type === "image_url" || item.type === "image");
-          if (imageContent) {
-            return {
-              styleName: style.name,
-              success: true,
-              imageUrl: imageContent.image_url?.url || imageContent.url
-            };
+          for (const part of content) {
+            // Check for inline_data format
+            if (part.inline_data?.data) {
+              const mimeType = part.inline_data.mime_type || "image/png";
+              return {
+                styleName: style.name,
+                success: true,
+                imageUrl: `data:${mimeType};base64,${part.inline_data.data}`
+              };
+            }
+            // Check for image_url format
+            if (part.type === "image_url" || part.image_url) {
+              return {
+                styleName: style.name,
+                success: true,
+                imageUrl: part.image_url?.url || part.url
+              };
+            }
           }
         }
 
-        // Check if there's inline_data in the response
-        const inlineData = data.choices?.[0]?.message?.inline_data;
-        if (inlineData) {
+        // Format 2: Direct inline_data on message
+        if (message?.inline_data?.data) {
+          const mimeType = message.inline_data.mime_type || "image/png";
           return {
             styleName: style.name,
             success: true,
-            imageUrl: `data:${inlineData.mime_type};base64,${inlineData.data}`
+            imageUrl: `data:${mimeType};base64,${message.inline_data.data}`
           };
         }
 
-        // Try to extract base64 image from text content
+        // Format 3: Check for image in a different response structure
+        const candidates = data.candidates;
+        if (candidates?.[0]?.content?.parts) {
+          for (const part of candidates[0].content.parts) {
+            if (part.inline_data?.data) {
+              const mimeType = part.inline_data.mime_type || "image/png";
+              return {
+                styleName: style.name,
+                success: true,
+                imageUrl: `data:${mimeType};base64,${part.inline_data.data}`
+              };
+            }
+          }
+        }
+
+        // Format 4: Base64 embedded in text
         if (typeof content === "string" && content.includes("data:image")) {
           const match = content.match(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/);
           if (match) {
@@ -115,12 +142,12 @@ serve(async (req) => {
           }
         }
 
-        console.log(`Style ${style.name} - no image found in response, content type:`, typeof content);
+        console.log(`Style ${style.name} - no image found, content type:`, typeof content, "content preview:", typeof content === "string" ? content.substring(0, 500) : JSON.stringify(content)?.substring(0, 500));
         return {
           styleName: style.name,
           success: false,
-          error: "未能生成图片",
-          textContent: typeof content === "string" ? content.substring(0, 200) : null
+          error: "模型返回了文字而非图片",
+          textContent: typeof content === "string" ? content.substring(0, 300) : null
         };
 
       } catch (error) {
