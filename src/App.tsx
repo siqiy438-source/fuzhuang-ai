@@ -8,7 +8,6 @@ import Auth from "./pages/Auth";
 import PhotoAnalysisPage from "./pages/PhotoAnalysisPage";
 import StyleAdvisorPage from "./pages/StyleAdvisorPage";
 import HistoryPage from "./pages/HistoryPage";
-import OutfitGeneratorPage from "./pages/OutfitGeneratorPage";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -24,7 +23,6 @@ const App = () => (
           <Route path="/photo-analysis" element={<PhotoAnalysisPage />} />
           <Route path="/style-advisor" element={<StyleAdvisorPage />} />
           <Route path="/history" element={<HistoryPage />} />
-          <Route path="/outfit-generator" element={<OutfitGeneratorPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

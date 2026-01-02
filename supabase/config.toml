@@ -6,5 +6,5 @@ verify_jwt = false
 [functions.style-chat]
 verify_jwt = false
 
-[functions.generate-outfits]
+[functions.generate-sales-intro]
 verify_jwt = false
