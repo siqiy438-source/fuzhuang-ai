@@ -45,18 +45,23 @@ const Auth = () => {
         if (error) throw error;
         toast.success("登录成功！");
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
             data: {
               username: username || email.split("@")[0],
             },
           },
         });
         if (error) throw error;
-        toast.success("注册成功！");
+        
+        // 检查是否需要邮箱验证
+        if (data?.user && !data.user.confirmed_at) {
+          toast.success("注册成功！请检查邮箱验证链接");
+        } else {
+          toast.success("注册成功！正在登录...");
+        }
       }
     } catch (error: any) {
       console.error("Auth error:", error);
