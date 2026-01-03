@@ -104,7 +104,7 @@ const Auth = () => {
               {isLogin ? "欢迎回来" : "创建账号"}
             </h1>
             <p className="text-muted-foreground">
-              {isLogin ? "登录您的 StyleAI 账号" : "开启您的时尚之旅"}
+              {isLogin ? "登录您的 Muse AI 账号" : "开启您的时尚之旅"}
             </p>
           </div>
 

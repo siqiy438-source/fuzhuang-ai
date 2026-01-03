@@ -32,8 +32,8 @@ networksetup -getairportnetwork en0
 
 ### 预期结果
 
-✅ **成功**: 应该看到 MuseAI 网站首页
-- 显示 "MuseAI - AI穿搭顾问" 标题
+✅ **成功**: 应该看到 Muse AI 网站首页
+- 显示 "Muse AI - AI穿搭顾问" 标题
 - 有导航菜单
 - 页面样式正常
 

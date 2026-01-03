@@ -99,7 +99,7 @@ const HeroSection = () => {
             className="mt-20 pt-10 border-t border-border/30 animate-fade-up"
             style={{ animationDelay: "0.4s" }}
           >
-            <p className="text-sm text-muted-foreground mb-6">为什么选择 StyleAI</p>
+            <p className="text-sm text-muted-foreground mb-6">为什么选择 Muse AI</p>
             <div className="flex flex-wrap justify-center gap-8 md:gap-16">
               <div className="text-center">
                 <div className="text-3xl font-heading font-bold text-foreground mb-1">AI</div>

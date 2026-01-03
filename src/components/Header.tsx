@@ -31,7 +31,7 @@ const Header = () => {
                 <div className="absolute -inset-1 bg-primary/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
               <span className="font-heading text-xl font-semibold text-foreground tracking-tight">
-                MuseAI
+                Muse AI
               </span>
             </Link>
             

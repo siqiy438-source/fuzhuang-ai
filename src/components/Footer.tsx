@@ -16,7 +16,7 @@ const Footer = () => {
                 <Sparkles className="w-5 h-5 text-primary-foreground" />
               </div>
               <span className="font-heading text-xl font-semibold text-foreground">
-                StyleAI
+                Muse AI
               </span>
             </Link>
             <p className="text-muted-foreground max-w-sm leading-relaxed">
@@ -67,7 +67,7 @@ const Footer = () => {
             用心打造 <Heart className="w-3.5 h-3.5 text-primary fill-primary" /> AI 驱动时尚搭配
           </p>
           <p className="text-sm text-muted-foreground">
-            © 2026 StyleAI. 保留所有权利。
+            © 2026 Muse AI. 保留所有权利。
           </p>
         </div>
       </div>
