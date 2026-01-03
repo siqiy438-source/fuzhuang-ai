@@ -5,12 +5,22 @@ import { useEffect, useState } from "react";
 
 const HeroSection = () => {
   // 检测是否为移动设备
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 768;
+  });
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768 || 
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+      try {
+        const userAgent = navigator?.userAgent || '';
+        setIsMobile(window.innerWidth < 768 || 
+          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent));
+      } catch {
+        setIsMobile(window.innerWidth < 768);
+      }
     };
     
     checkMobile();

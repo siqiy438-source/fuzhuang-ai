@@ -8,28 +8,54 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY |
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
+// 检测 localStorage 是否可用
+const isLocalStorageAvailable = (): boolean => {
+  try {
+    const testKey = '__storage_test__';
+    if (typeof window === 'undefined' || !window.localStorage) return false;
+    window.localStorage.setItem(testKey, testKey);
+    window.localStorage.removeItem(testKey);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// 内存存储作为后备
+const memoryStorage: Record<string, string> = {};
+
 // 安全的 storage 包装器，处理某些浏览器（如隐私模式）的 localStorage 不可用问题
 const safeStorage = {
   getItem: (key: string): string | null => {
-    try {
-      return localStorage.getItem(key);
-    } catch {
-      return null;
+    if (isLocalStorageAvailable()) {
+      try {
+        return localStorage.getItem(key);
+      } catch {
+        return memoryStorage[key] || null;
+      }
     }
+    return memoryStorage[key] || null;
   },
   setItem: (key: string, value: string): void => {
-    try {
-      localStorage.setItem(key, value);
-    } catch {
-      // 静默失败
+    if (isLocalStorageAvailable()) {
+      try {
+        localStorage.setItem(key, value);
+        return;
+      } catch {
+        // 降级到内存存储
+      }
     }
+    memoryStorage[key] = value;
   },
   removeItem: (key: string): void => {
-    try {
-      localStorage.removeItem(key);
-    } catch {
-      // 静默失败
+    if (isLocalStorageAvailable()) {
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        // 忽略错误
+      }
     }
+    delete memoryStorage[key];
   },
 };
 

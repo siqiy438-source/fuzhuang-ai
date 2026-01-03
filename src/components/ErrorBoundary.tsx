@@ -45,10 +45,15 @@ class ErrorBoundary extends Component<Props, State> {
             >
               刷新页面
             </button>
-            {process.env.NODE_ENV === 'development' && this.state.error && (
-              <pre className="mt-6 p-4 bg-gray-100 rounded-lg text-left text-xs text-gray-700 overflow-auto max-h-40">
-                {this.state.error.toString()}
-              </pre>
+            {this.state.error && (
+              <div className="mt-6 p-4 bg-gray-100 rounded-lg text-left overflow-auto max-h-60">
+                <p className="text-xs text-gray-500 mb-2">错误详情（调试用）：</p>
+                <pre className="text-xs text-gray-700 whitespace-pre-wrap break-words">
+                  {this.state.error.toString()}
+                  {'\n\n'}
+                  {this.state.error.stack}
+                </pre>
+              </div>
             )}
           </div>
         </div>
@@ -60,5 +65,6 @@ class ErrorBoundary extends Component<Props, State> {
 }
 
 export default ErrorBoundary;
+
 
 

@@ -8,25 +8,54 @@ export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsLoading(false);
+    let mounted = true;
+    let subscription: { unsubscribe: () => void } | null = null;
+
+    const initAuth = async () => {
+      try {
+        // 设置认证状态监听
+        const { data } = supabase.auth.onAuthStateChange(
+          (_event, session) => {
+            if (mounted) {
+              setSession(session);
+              setUser(session?.user ?? null);
+              setIsLoading(false);
+            }
+          }
+        );
+        subscription = data.subscription;
+
+        // 获取当前会话
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (mounted) {
+          setSession(sessionData.session);
+          setUser(sessionData.session?.user ?? null);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.warn('认证初始化失败:', error);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
-    );
+    };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
+    initAuth();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.warn('登出失败:', error);
+    }
   };
 
   return { user, session, isLoading, signOut };
