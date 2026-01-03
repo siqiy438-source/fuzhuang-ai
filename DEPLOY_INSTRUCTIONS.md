@@ -81,3 +81,5 @@ npx supabase functions deploy generate-sales-intro --no-verify-jwt
 - 确保 ZENMUX_API_KEY 环境变量已在 Supabase 项目中配置
 
 
+
+

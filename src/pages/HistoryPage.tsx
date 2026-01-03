@@ -4,6 +4,16 @@ import Header from "@/components/Header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -35,6 +45,8 @@ const HistoryPage = () => {
   const [loadingAnalyses, setLoadingAnalyses] = useState(true);
   const [loadingConsultations, setLoadingConsultations] = useState(true);
   const [selectedAnalysis, setSelectedAnalysis] = useState<OutfitAnalysis | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; type: 'analysis' | 'consultation' } | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -55,6 +67,10 @@ const HistoryPage = () => {
 
       if (error) throw error;
       setAnalyses(data || []);
+      // 自动选中第一条记录
+      if (data && data.length > 0 && !selectedAnalysis) {
+        setSelectedAnalysis(data[0]);
+      }
     } catch (error) {
       console.error("Fetch analyses error:", error);
     } finally {
@@ -78,34 +94,45 @@ const HistoryPage = () => {
     }
   };
 
-  const deleteAnalysis = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('outfit_analyses')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      setAnalyses(prev => prev.filter(a => a.id !== id));
-      if (selectedAnalysis?.id === id) setSelectedAnalysis(null);
-      toast.success("删除成功");
-    } catch (error) {
-      toast.error("删除失败");
-    }
+  const handleDeleteClick = (id: string, type: 'analysis' | 'consultation') => {
+    setItemToDelete({ id, type });
+    setDeleteDialogOpen(true);
   };
 
-  const deleteConsultation = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('style_consultations')
-        .delete()
-        .eq('id', id);
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
 
-      if (error) throw error;
-      setConsultations(prev => prev.filter(c => c.id !== id));
+    try {
+      if (itemToDelete.type === 'analysis') {
+        const { error } = await supabase
+          .from('outfit_analyses')
+          .delete()
+          .eq('id', itemToDelete.id);
+
+        if (error) throw error;
+        setAnalyses(prev => prev.filter(a => a.id !== itemToDelete.id));
+        if (selectedAnalysis?.id === itemToDelete.id) {
+          // 删除后选中下一条记录
+          const currentIndex = analyses.findIndex(a => a.id === itemToDelete.id);
+          const nextAnalysis = analyses[currentIndex + 1] || analyses[currentIndex - 1] || null;
+          setSelectedAnalysis(nextAnalysis);
+        }
+      } else {
+        const { error } = await supabase
+          .from('style_consultations')
+          .delete()
+          .eq('id', itemToDelete.id);
+
+        if (error) throw error;
+        setConsultations(prev => prev.filter(c => c.id !== itemToDelete.id));
+      }
       toast.success("删除成功");
     } catch (error) {
+      console.error("Delete error:", error);
       toast.error("删除失败");
+    } finally {
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
     }
   };
 
@@ -235,7 +262,7 @@ const HistoryPage = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => deleteAnalysis(selectedAnalysis.id)}
+                                onClick={() => handleDeleteClick(selectedAnalysis.id, 'analysis')}
                                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -343,7 +370,7 @@ const HistoryPage = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => deleteConsultation(consultation.id)}
+                              onClick={() => handleDeleteClick(consultation.id, 'consultation')}
                               className="text-destructive hover:text-destructive hover:bg-destructive/10"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -373,6 +400,29 @@ const HistoryPage = () => {
           )}
         </div>
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogDescription>
+              {itemToDelete?.type === 'analysis' 
+                ? '确定要删除这条穿搭分析记录吗？此操作无法撤销。'
+                : '确定要删除这条咨询记录吗？此操作无法撤销。'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

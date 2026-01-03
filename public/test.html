@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手机访问测试页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bounce 1s ease-in-out;
+        }
+        
+        .success-icon svg {
+            width: 50px;
+            height: 50px;
+            stroke: white;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .info-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: right;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .test-section {
+            margin-top: 30px;
+        }
+        
+        .test-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .test-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .test-icon.success {
+            color: #28a745;
+        }
+        
+        .test-text {
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">
+            <svg viewBox="0 0 24 24">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+        
+        <h1>✅ 连接成功！</h1>
+        <p class="subtitle">您的手机已成功连接到开发服务器</p>
+        
+        <div class="info-box">
+            <div class="info-item">
+                <span class="info-label">服务器状态</span>
+                <span class="status success">运行中</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">服务器地址</span>
+                <span class="info-value" id="serverUrl">正在获取...</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">您的设备</span>
+                <span class="info-value" id="deviceInfo">正在检测...</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">浏览器</span>
+                <span class="info-value" id="browserInfo">正在检测...</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">屏幕尺寸</span>
+                <span class="info-value" id="screenInfo">正在检测...</span>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">功能测试</div>
+            
+            <div class="test-item">
+                <svg class="test-icon success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span class="test-text">网络连接正常</span>
+            </div>
+            
+            <div class="test-item">
+                <svg class="test-icon success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span class="test-text">HTML 加载成功</span>
+            </div>
+            
+            <div class="test-item">
+                <svg class="test-icon success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span class="test-text">CSS 样式正常</span>
+            </div>
+            
+            <div class="test-item">
+                <svg class="test-icon success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span class="test-text">JavaScript 运行正常</span>
+            </div>
+        </div>
+        
+        <a href="/" class="btn">进入 MuseAI 主页</a>
+        
+        <div class="footer">
+            <p>MuseAI - AI穿搭顾问</p>
+            <p style="margin-top: 5px;">测试时间: <span id="testTime"></span></p>
+        </div>
+    </div>
+    
+    <script>
+        // 获取设备信息
+        function getDeviceInfo() {
+            const ua = navigator.userAgent;
+            if (/iPhone/i.test(ua)) return 'iPhone';
+            if (/iPad/i.test(ua)) return 'iPad';
+            if (/Android/i.test(ua)) return 'Android';
+            if (/Windows/i.test(ua)) return 'Windows';
+            if (/Mac/i.test(ua)) return 'Mac';
+            return '未知设备';
+        }
+        
+        // 获取浏览器信息
+        function getBrowserInfo() {
+            const ua = navigator.userAgent;
+            if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) return 'Safari';
+            if (/Chrome/i.test(ua)) return 'Chrome';
+            if (/Firefox/i.test(ua)) return 'Firefox';
+            if (/Edge/i.test(ua)) return 'Edge';
+            return '其他浏览器';
+        }
+        
+        // 获取屏幕信息
+        function getScreenInfo() {
+            return `${window.innerWidth} × ${window.innerHeight}`;
+        }
+        
+        // 获取服务器地址
+        function getServerUrl() {
+            return window.location.origin;
+        }
+        
+        // 获取当前时间
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+        
+        // 更新页面信息
+        document.getElementById('serverUrl').textContent = getServerUrl();
+        document.getElementById('deviceInfo').textContent = getDeviceInfo();
+        document.getElementById('browserInfo').textContent = getBrowserInfo();
+        document.getElementById('screenInfo').textContent = getScreenInfo();
+        document.getElementById('testTime').textContent = getCurrentTime();
+        
+        // 打印调试信息到控制台
+        console.log('=== 手机访问测试 ===');
+        console.log('服务器地址:', getServerUrl());
+        console.log('设备信息:', getDeviceInfo());
+        console.log('浏览器:', getBrowserInfo());
+        console.log('屏幕尺寸:', getScreenInfo());
+        console.log('User Agent:', navigator.userAgent);
+        console.log('测试时间:', getCurrentTime());
+        console.log('==================');
+    </script>
+</body>
+</html>
+
+
