@@ -6,8 +6,10 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
+    host: "0.0.0.0", // 改为 0.0.0.0 以支持更好的移动端访问
     port: 8080,
+    strictPort: false,
+    cors: true, // 启用 CORS
   },
   plugins: [
     react(), 
