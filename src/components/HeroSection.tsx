@@ -92,18 +92,11 @@ const HeroSection = () => {
                 文字搭配咨询
               </Link>
             </Button>
-          </div>
-          
-          {/* Secondary CTA - Social Post Generator */}
-          <div 
-            className="mt-6 animate-fade-up"
-            style={{ animationDelay: "0.4s" }}
-          >
-            <Button variant="outline" size="lg" asChild className="group w-full sm:w-auto glass border-primary/20 hover:border-primary/40 hover:bg-primary/5">
-              <Link to="/social-post" className="gap-2">
-                <PenLine className="w-4 h-4" />
+            <Button variant="elegant" size="xl" asChild className="w-full sm:w-auto">
+              <Link to="/social-post" className="gap-3">
+                <PenLine className="w-5 h-5" />
                 朋友圈文案生成
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <Sparkles className="w-4 h-4 text-primary" />
               </Link>
             </Button>
           </div>
