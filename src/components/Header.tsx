@@ -14,6 +14,7 @@ const Header = () => {
   const navLinks = [
     { path: "/photo-analysis", label: "穿搭分析" },
     { path: "/style-advisor", label: "搭配顾问" },
+    { path: "/social-post", label: "朋友圈文案" },
     { path: "/history", label: "历史记录" },
   ];
 

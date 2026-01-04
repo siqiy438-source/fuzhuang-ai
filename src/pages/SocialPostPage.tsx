@@ -1,0 +1,411 @@
+import { useState, useRef } from "react";
+import { Upload, Copy, RefreshCw, Sparkles, ImagePlus, LogIn, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
+import Header from "@/components/Header";
+import { usePerformance } from "@/hooks/usePerformance";
+
+type StyleType = "lively" | "professional" | "simple";
+
+const SocialPostPage = () => {
+  usePerformance();
+  
+  const [image, setImage] = useState<string | null>(null);
+  const [style, setStyle] = useState<StyleType>("professional");
+  const [generatedText, setGeneratedText] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
+
+  const styles = [
+    { 
+      value: "professional" as StyleType, 
+      label: "专业风", 
+      icon: "💼", 
+      desc: "店员推荐话术",
+      color: "from-blue-500 to-indigo-500"
+    },
+    { 
+      value: "simple" as StyleType, 
+      label: "简约风", 
+      icon: "🌿", 
+      desc: "简洁直接",
+      color: "from-green-500 to-emerald-500"
+    },
+  ];
+
+  // 压缩图片
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // 限制最大尺寸为 1920px
+          const maxSize = 1920;
+          if (width > maxSize || height > maxSize) {
+            if (width > height) {
+              height = (height / width) * maxSize;
+              width = maxSize;
+            } else {
+              width = (width / height) * maxSize;
+              height = maxSize;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // 压缩质量 0.8
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("图片大小不能超过10MB");
+        return;
+      }
+      
+      try {
+        toast.loading("正在处理图片...");
+        const compressedImage = await compressImage(file);
+        setImage(compressedImage);
+        setGeneratedText("");
+        toast.dismiss();
+        toast.success("图片上传成功");
+      } catch (error) {
+        console.error("Image compression error:", error);
+        toast.error("图片处理失败，请重试");
+      }
+    }
+  };
+
+  const generatePost = async () => {
+    if (!image) {
+      toast.error("请先上传商品图片");
+      return;
+    }
+    
+    if (!user) {
+      toast.error("请先登录后再使用生成功能");
+      return;
+    }
+    
+    setIsGenerating(true);
+    setGeneratedText("");
+
+    try {
+      const response = await fetch(
+        `${supabase.supabaseUrl}/functions/v1/generate-social-post`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({ 
+            imageBase64: image, 
+            style 
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("无法读取响应流");
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonStr = line.slice(6).trim();
+            if (jsonStr === '[DONE]') continue;
+            
+            try {
+              const json = JSON.parse(jsonStr);
+              const content = json.choices?.[0]?.delta?.content || '';
+              if (content) {
+                setGeneratedText(prev => prev + content);
+              }
+            } catch (e) {
+              // 忽略解析错误，继续处理
+            }
+          }
+        }
+      }
+
+      toast.success("文案生成完成！");
+    } catch (error: any) {
+      console.error("Generate error:", error);
+      toast.error(error.message || "生成失败，请重试");
+      setGeneratedText("");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const copyToClipboard = async () => {
+    if (!generatedText) return;
+    
+    try {
+      await navigator.clipboard.writeText(generatedText);
+      toast.success("已复制到剪贴板 📋");
+    } catch (error) {
+      toast.error("复制失败，请重试");
+    }
+  };
+
+  const resetImage = () => {
+    setImage(null);
+    setGeneratedText("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-hero">
+      <Header />
+      
+      {/* Background Effects - 移动端简化 */}
+      <div className="absolute inset-0 bg-gradient-mesh opacity-50" />
+      
+      <main className="relative pt-24 pb-32 px-4 sm:px-6">
+        <div className="max-w-2xl mx-auto">
+          {/* 标题区域 */}
+          <div className="text-center mb-8 animate-fade-up">
+            <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full glass border border-primary/10 mb-6">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">朋友圈文案生成</span>
+            </div>
+            <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4">
+              AI 帮你写出
+              <span className="text-gradient"> 爆款文案</span>
+            </h1>
+            <p className="text-base sm:text-lg text-muted-foreground max-w-lg mx-auto">
+              上传商品图片，选择风格，一键生成适合朋友圈/小红书的精美文案
+            </p>
+          </div>
+
+          {/* 图片上传区 - 移动端优化 */}
+          <Card className="p-4 sm:p-6 mb-6 glass border-border/30 shadow-elevated animate-fade-up" style={{ animationDelay: "0.1s" }}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              id="social-photo-upload"
+            />
+            
+            {!image ? (
+              <label
+                htmlFor="social-photo-upload"
+                className="relative flex flex-col items-center justify-center h-[300px] sm:h-[340px] border-2 border-dashed border-primary/20 rounded-2xl cursor-pointer active:scale-[0.99] hover:border-primary/40 hover:bg-primary-muted/30 transition-all duration-300 group overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                <div className="relative z-10 flex flex-col items-center px-4">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-primary-muted flex items-center justify-center mb-5 sm:mb-6 group-hover:scale-110 group-hover:shadow-glow transition-all duration-300">
+                    <ImagePlus className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
+                  </div>
+                  <p className="text-lg sm:text-xl font-medium text-foreground mb-2">点击上传商品照片</p>
+                  <p className="text-sm sm:text-base text-muted-foreground text-center">支持 JPG、PNG 格式，最大 10MB</p>
+                </div>
+              </label>
+            ) : (
+              <div className="relative h-[300px] sm:h-[340px] rounded-2xl overflow-hidden group">
+                <img
+                  src={image}
+                  alt="Uploaded product"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-foreground/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center pb-6">
+                  <Button variant="glass" onClick={resetImage} className="backdrop-blur-md active:scale-95 transition-transform">
+                    <Upload className="w-4 h-4" />
+                    重新上传
+                  </Button>
+                </div>
+                {/* 移动端：添加固定在图片上的重新上传按钮 */}
+                <div className="absolute top-4 right-4 sm:hidden">
+                  <Button 
+                    variant="glass" 
+                    size="sm"
+                    onClick={resetImage} 
+                    className="backdrop-blur-md shadow-soft"
+                  >
+                    <Upload className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Card>
+
+          {/* 风格选择器 - 移动端优化大按钮 */}
+          <div className="mb-6 animate-fade-up" style={{ animationDelay: "0.2s" }}>
+            <h3 className="text-sm font-medium text-foreground mb-3 px-1">选择文案风格</h3>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              {styles.map((s) => (
+                <button
+                  key={s.value}
+                  onClick={() => setStyle(s.value)}
+                  className={`relative p-4 sm:p-5 rounded-xl border-2 transition-all duration-300 min-h-[100px] sm:min-h-[110px] active:scale-95 ${
+                    style === s.value
+                      ? "border-primary bg-primary/10 shadow-soft scale-[1.02]"
+                      : "border-border/50 hover:border-border glass active:bg-accent/50"
+                  }`}
+                >
+                  <div className="flex flex-col items-center gap-2 sm:gap-2.5">
+                    <span className="text-3xl sm:text-4xl">{s.icon}</span>
+                    <div className="text-base sm:text-lg font-semibold text-foreground">{s.label}</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">{s.desc}</div>
+                  </div>
+                  {style === s.value && (
+                    <div className={`absolute -inset-0.5 bg-gradient-to-r ${s.color} rounded-xl opacity-20 -z-10 blur-sm`} />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 生成的文案显示区 - 移动端优化 */}
+          {generatedText && (
+            <Card className="p-5 sm:p-6 mb-6 glass border-border/30 shadow-elevated animate-fade-up">
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border/30">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">生成的文案</h3>
+                  <p className="text-xs text-muted-foreground">可直接复制发布</p>
+                </div>
+              </div>
+              <div className="prose prose-sm max-w-none">
+                <div className="whitespace-pre-wrap leading-[1.8] text-foreground/90 text-[15px] sm:text-base select-text">
+                  {generatedText}
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* 等待状态提示 */}
+          {!generatedText && !isGenerating && image && (
+            <Card className="p-8 sm:p-10 glass border-border/30 text-center animate-fade-up">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground/50" />
+              </div>
+              <p className="text-muted-foreground">选择文案风格，点击生成按钮开始创作</p>
+            </Card>
+          )}
+
+          {/* 生成中状态 */}
+          {isGenerating && (
+            <Card className="p-6 sm:p-8 glass border-border/30 text-center animate-fade-up">
+              <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 text-primary animate-spin mx-auto mb-4" />
+              <p className="text-foreground font-medium mb-2">AI 正在创作中...</p>
+              <p className="text-sm text-muted-foreground">文案将逐字显示，请稍候</p>
+            </Card>
+          )}
+        </div>
+      </main>
+
+      {/* 底部固定操作栏 - 移动端优化 */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 p-4 sm:p-5 bg-background/98 backdrop-blur-xl border-t border-border/50 shadow-elevated safe-area-bottom">
+        <div className="max-w-2xl mx-auto">
+          {!user ? (
+            <Link to="/auth" className="block">
+              <Button variant="rose" size="lg" className="w-full h-14 text-base shadow-soft active:scale-98 transition-transform">
+                <LogIn className="w-5 h-5" />
+                登录后使用 AI 生成功能
+              </Button>
+            </Link>
+          ) : (
+            <div className="flex gap-2 sm:gap-3">
+              <Button
+                onClick={generatePost}
+                disabled={!image || isGenerating}
+                className="flex-1 h-14 text-base font-semibold shadow-soft active:scale-98 transition-transform disabled:active:scale-100"
+                variant="rose"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="hidden sm:inline">生成中...</span>
+                    <span className="sm:hidden">生成中</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5" />
+                    <span className="hidden sm:inline">生成文案</span>
+                    <span className="sm:hidden">生成</span>
+                  </>
+                )}
+              </Button>
+              
+              {generatedText && (
+                <>
+                  <Button 
+                    onClick={copyToClipboard} 
+                    variant="outline" 
+                    size="lg"
+                    className="h-14 w-14 sm:w-auto sm:px-6 shadow-soft active:scale-95 transition-transform flex items-center justify-center"
+                  >
+                    <Copy className="w-5 h-5" />
+                    <span className="hidden sm:inline sm:ml-2">复制</span>
+                  </Button>
+                  <Button 
+                    onClick={generatePost} 
+                    variant="outline" 
+                    size="lg"
+                    className="h-14 w-14 sm:w-auto sm:px-6 shadow-soft active:scale-95 transition-transform flex items-center justify-center"
+                    disabled={isGenerating}
+                  >
+                    <RefreshCw className="w-5 h-5" />
+                    <span className="hidden sm:inline sm:ml-2">重新生成</span>
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SocialPostPage;
+

@@ -1,4 +1,4 @@
-import { Camera, MessageSquareText, ArrowRight, Sparkles } from "lucide-react";
+import { Camera, MessageSquareText, ArrowRight, Sparkles, PenLine } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -93,11 +93,25 @@ const HeroSection = () => {
               </Link>
             </Button>
           </div>
+          
+          {/* Secondary CTA - Social Post Generator */}
+          <div 
+            className="mt-6 animate-fade-up"
+            style={{ animationDelay: "0.4s" }}
+          >
+            <Button variant="outline" size="lg" asChild className="group w-full sm:w-auto glass border-primary/20 hover:border-primary/40 hover:bg-primary/5">
+              <Link to="/social-post" className="gap-2">
+                <PenLine className="w-4 h-4" />
+                朋友圈文案生成
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+              </Link>
+            </Button>
+          </div>
 
           {/* Trust Indicators */}
           <div 
             className="mt-20 pt-10 border-t border-border/30 animate-fade-up"
-            style={{ animationDelay: "0.4s" }}
+            style={{ animationDelay: "0.5s" }}
           >
             <p className="text-sm text-muted-foreground mb-6">为什么选择 Muse AI</p>
             <div className="flex flex-wrap justify-center gap-8 md:gap-16">

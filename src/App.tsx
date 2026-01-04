@@ -11,6 +11,7 @@ const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const PhotoAnalysisPage = lazy(() => import("./pages/PhotoAnalysisPage"));
 const StyleAdvisorPage = lazy(() => import("./pages/StyleAdvisorPage"));
+const SocialPostPage = lazy(() => import("./pages/SocialPostPage"));
 const HistoryPage = lazy(() => import("./pages/HistoryPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/photo-analysis" element={<PhotoAnalysisPage />} />
               <Route path="/style-advisor" element={<StyleAdvisorPage />} />
+              <Route path="/social-post" element={<SocialPostPage />} />
               <Route path="/history" element={<HistoryPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
