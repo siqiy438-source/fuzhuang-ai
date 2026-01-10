@@ -21,18 +21,26 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // 优化构建配置 - 使用兼容性更好的目标
-    target: ["es2020", "edge88", "firefox78", "chrome87", "safari14"],
+    // 优化构建配置 - 使用更广泛的兼容性目标
+    target: ["es2015", "edge79", "firefox67", "chrome64", "safari12"],
     minify: "terser",
     terserOptions: {
       compress: {
         drop_console: mode === "production",
         drop_debugger: mode === "production",
       },
+      format: {
+        // 确保输出的代码兼容性更好
+        ecma: 2015,
+      },
     },
     // 代码分割优化
     rollupOptions: {
       output: {
+        // 使用更稳定的文件名格式，避免某些浏览器的模块加载问题
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]',
         manualChunks: {
           // 将 React 相关库打包到一起
           "react-vendor": ["react", "react-dom", "react-router-dom"],
@@ -55,6 +63,10 @@ export default defineConfig(({ mode }) => ({
     chunkSizeWarningLimit: 1000,
     // 启用 CSS 代码分割
     cssCodeSplit: true,
+    // 确保模块预加载正确工作
+    modulePreload: {
+      polyfill: true,
+    },
   },
   // 性能优化
   optimizeDeps: {

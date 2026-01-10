@@ -33,6 +33,49 @@
 
   <body>
     <div id="root"></div>
+    
+    <!-- 模块加载错误处理 -->
+    <script>
+      // 检测浏览器是否支持 ES Module
+      if (!('noModule' in HTMLScriptElement.prototype)) {
+        document.getElementById('root').innerHTML = `
+          <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #faf9f7; padding: 24px; font-family: system-ui, -apple-system, sans-serif;">
+            <div style="max-width: 400px; text-align: center;">
+              <div style="width: 64px; height: 64px; margin: 0 auto 24px; border-radius: 16px; background: linear-gradient(135deg, #f43f5e, #fb7185); display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 32px; height: 32px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h1 style="font-size: 24px; font-weight: 600; color: #111827; margin-bottom: 12px;">
+                浏览器版本过旧
+              </h1>
+              <p style="color: #6b7280; margin-bottom: 24px; line-height: 1.6;">
+                您的浏览器版本过旧，不支持运行此应用。请更新浏览器或使用以下浏览器访问：
+              </p>
+              <ul style="color: #6b7280; text-align: left; margin: 0 auto 24px; display: inline-block;">
+                <li style="margin-bottom: 8px;">• Chrome 64+</li>
+                <li style="margin-bottom: 8px;">• Safari 12+</li>
+                <li style="margin-bottom: 8px;">• Firefox 67+</li>
+                <li style="margin-bottom: 8px;">• Edge 79+</li>
+              </ul>
+            </div>
+          </div>
+        `;
+      }
+      
+      // 捕获模块加载错误
+      window.addEventListener('error', function(e) {
+        if (e.message && e.message.includes('module')) {
+          console.error('模块加载失败:', e);
+          // 尝试清除缓存并重新加载
+          if (!sessionStorage.getItem('moduleErrorRetried')) {
+            sessionStorage.setItem('moduleErrorRetried', '1');
+            window.location.reload(true);
+          }
+        }
+      }, true);
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
