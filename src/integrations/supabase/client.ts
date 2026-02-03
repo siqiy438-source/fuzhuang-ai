@@ -98,3 +98,4 @@ const mockSupabase = {
 } as unknown as SupabaseClient<Database>;
 
 export const supabase = supabaseInstance || mockSupabase;
+export { SUPABASE_URL };

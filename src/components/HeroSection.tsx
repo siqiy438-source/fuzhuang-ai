@@ -1,4 +1,4 @@
-import { Camera, MessageSquareText, ArrowRight, Sparkles, PenLine } from "lucide-react";
+import { Camera, MessageSquareText, Sparkles, PenLine, Video } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -74,29 +74,33 @@ const HeroSection = () => {
             为顾客打造完美造型
           </p>
           
-          {/* CTA Buttons */}
-          <div 
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up"
+          {/* CTA Buttons - 2x2 Grid on mobile, row on desktop */}
+          <div
+            className="grid grid-cols-2 sm:flex sm:flex-row items-center justify-center gap-3 sm:gap-4 animate-fade-up max-w-md sm:max-w-none mx-auto"
             style={{ animationDelay: "0.3s" }}
           >
-            <Button variant="hero" size="xl" asChild className="group w-full sm:w-auto">
-              <Link to="/photo-analysis" className="gap-3">
+            <Button variant="hero" size="lg" asChild className="group h-14 sm:h-auto sm:py-4">
+              <Link to="/photo-analysis" className="gap-2 sm:gap-3 flex-col sm:flex-row">
                 <Camera className="w-5 h-5" />
-                上传照片分析
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                <span className="text-sm sm:text-base">照片分析</span>
               </Link>
             </Button>
-            <Button variant="elegant" size="xl" asChild className="w-full sm:w-auto">
-              <Link to="/style-advisor" className="gap-3">
+            <Button variant="elegant" size="lg" asChild className="h-14 sm:h-auto sm:py-4">
+              <Link to="/style-advisor" className="gap-2 sm:gap-3 flex-col sm:flex-row">
                 <MessageSquareText className="w-5 h-5" />
-                文字搭配咨询
+                <span className="text-sm sm:text-base">搭配咨询</span>
               </Link>
             </Button>
-            <Button variant="elegant" size="xl" asChild className="w-full sm:w-auto">
-              <Link to="/social-post" className="gap-3">
+            <Button variant="elegant" size="lg" asChild className="h-14 sm:h-auto sm:py-4">
+              <Link to="/social-post" className="gap-2 sm:gap-3 flex-col sm:flex-row">
                 <PenLine className="w-5 h-5" />
-                朋友圈文案生成
-                <Sparkles className="w-4 h-4 text-primary" />
+                <span className="text-sm sm:text-base">朋友圈文案</span>
+              </Link>
+            </Button>
+            <Button variant="elegant" size="lg" asChild className="h-14 sm:h-auto sm:py-4">
+              <Link to="/clothing-intro" className="gap-2 sm:gap-3 flex-col sm:flex-row">
+                <Video className="w-5 h-5" />
+                <span className="text-sm sm:text-base">抖音话术</span>
               </Link>
             </Button>
           </div>
