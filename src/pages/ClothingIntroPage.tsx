@@ -99,8 +99,14 @@ const ClothingIntroPage = () => {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // 响应不是 JSON 格式，使用默认错误消息
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
