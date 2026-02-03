@@ -1,11 +1,9 @@
 import { useState, useRef } from "react";
-import { Upload, Copy, RefreshCw, Sparkles, ImagePlus, LogIn, Loader2, Video } from "lucide-react";
+import { Upload, Copy, RefreshCw, Sparkles, ImagePlus, Loader2, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { SUPABASE_URL } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import { usePerformance } from "@/hooks/usePerformance";
 
@@ -16,7 +14,6 @@ const ClothingIntroPage = () => {
   const [generatedText, setGeneratedText] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { user } = useAuth();
 
   // 压缩图片
   const compressImage = (file: File): Promise<string> => {
@@ -86,11 +83,6 @@ const ClothingIntroPage = () => {
       return;
     }
 
-    if (!user) {
-      toast.error("请先登录后再使用生成功能");
-      return;
-    }
-
     setIsGenerating(true);
     setGeneratedText("");
 
@@ -101,7 +93,6 @@ const ClothingIntroPage = () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
           },
           body: JSON.stringify({ imageBase64: image }),
         }
@@ -270,61 +261,52 @@ const ClothingIntroPage = () => {
       {/* 底部固定操作栏 */}
       <div className="fixed bottom-0 left-0 right-0 z-40 p-4 sm:p-5 bg-background/98 backdrop-blur-xl border-t border-border/50 shadow-elevated safe-area-bottom">
         <div className="max-w-2xl mx-auto">
-          {!user ? (
-            <Link to="/auth" className="block">
-              <Button variant="rose" size="lg" className="w-full h-14 text-base shadow-soft active:scale-98 transition-transform">
-                <LogIn className="w-5 h-5" />
-                登录后使用 AI 生成功能
-              </Button>
-            </Link>
-          ) : (
-            <div className="flex gap-2 sm:gap-3">
-              <Button
-                onClick={generateIntro}
-                disabled={!image || isGenerating}
-                className="flex-1 h-14 text-base font-semibold shadow-soft active:scale-98 transition-transform disabled:active:scale-100"
-                variant="rose"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span className="hidden sm:inline">生成中...</span>
-                    <span className="sm:hidden">生成中</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    <span className="hidden sm:inline">生成话术</span>
-                    <span className="sm:hidden">生成</span>
-                  </>
-                )}
-              </Button>
-
-              {generatedText && (
+          <div className="flex gap-2 sm:gap-3">
+            <Button
+              onClick={generateIntro}
+              disabled={!image || isGenerating}
+              className="flex-1 h-14 text-base font-semibold shadow-soft active:scale-98 transition-transform disabled:active:scale-100"
+              variant="rose"
+            >
+              {isGenerating ? (
                 <>
-                  <Button
-                    onClick={copyToClipboard}
-                    variant="outline"
-                    size="lg"
-                    className="h-14 w-14 sm:w-auto sm:px-6 shadow-soft active:scale-95 transition-transform flex items-center justify-center"
-                  >
-                    <Copy className="w-5 h-5" />
-                    <span className="hidden sm:inline sm:ml-2">复制</span>
-                  </Button>
-                  <Button
-                    onClick={generateIntro}
-                    variant="outline"
-                    size="lg"
-                    className="h-14 w-14 sm:w-auto sm:px-6 shadow-soft active:scale-95 transition-transform flex items-center justify-center"
-                    disabled={isGenerating}
-                  >
-                    <RefreshCw className="w-5 h-5" />
-                    <span className="hidden sm:inline sm:ml-2">重新生成</span>
-                  </Button>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span className="hidden sm:inline">生成中...</span>
+                  <span className="sm:hidden">生成中</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  <span className="hidden sm:inline">生成话术</span>
+                  <span className="sm:hidden">生成</span>
                 </>
               )}
-            </div>
-          )}
+            </Button>
+
+            {generatedText && (
+              <>
+                <Button
+                  onClick={copyToClipboard}
+                  variant="outline"
+                  size="lg"
+                  className="h-14 w-14 sm:w-auto sm:px-6 shadow-soft active:scale-95 transition-transform flex items-center justify-center"
+                >
+                  <Copy className="w-5 h-5" />
+                  <span className="hidden sm:inline sm:ml-2">复制</span>
+                </Button>
+                <Button
+                  onClick={generateIntro}
+                  variant="outline"
+                  size="lg"
+                  className="h-14 w-14 sm:w-auto sm:px-6 shadow-soft active:scale-95 transition-transform flex items-center justify-center"
+                  disabled={isGenerating}
+                >
+                  <RefreshCw className="w-5 h-5" />
+                  <span className="hidden sm:inline sm:ml-2">重新生成</span>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
